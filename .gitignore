@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# Configuration et secrets
+.env
+secrets/
+*.pem
+*.key
+
+# Bases locales
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE et système
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
