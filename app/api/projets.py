@@ -106,4 +106,3 @@ def modifier_role(projet_id: int, participant_id: int, donnees: RoleEntree, util
     personne = participation.utilisateur
     return ParticipantSortie(id=personne.id, courriel=personne.courriel, nom_affiche=personne.nom_affiche, photo=personne.photo, role=participation.role)
 
-...
