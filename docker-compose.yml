@@ -1,0 +1,78 @@
+services:
+  client:
+    build: ./client
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      server:
+        condition: service_healthy
+    networks: [frontend]
+    read_only: true
+    tmpfs: [/var/cache/nginx, /var/run]
+    security_opt: [no-new-privileges:true]
+
+  server:
+    build: ./server
+    env_file: ./server/.env
+    expose: ["8000"]
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks: [frontend, backend]
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/sante')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: project_db
+      MYSQL_USER: project_user
+      MYSQL_PASSWORD_FILE: /run/secrets/mysql_password
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+    expose: ["3306"]
+    networks: [backend]
+    volumes: [mysql_data:/var/lib/mysql]
+    secrets: [mysql_password, mysql_root_password]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root --password=$$(cat /run/secrets/mysql_root_password)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  phpmyadmin:
+    image: phpmyadmin:5.2.2-apache
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 0
+      UPLOAD_LIMIT: 16M
+    ports:
+      - "127.0.0.1:8081:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks: [frontend, backend]
+    tmpfs: [/tmp, /sessions, /var/run/apache2]
+    security_opt: [no-new-privileges:true]
+
+networks:
+  frontend:
+    internal: false
+  backend:
+    internal: true
+
+volumes:
+  mysql_data:
+
+secrets:
+  mysql_password:
+    file: ./secrets/mysql_password.txt
+  mysql_root_password:
+    file: ./secrets/mysql_root_password.txt
