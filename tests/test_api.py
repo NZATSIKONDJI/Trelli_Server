@@ -1,6 +1,6 @@
 def connecter(client, courriel):
     reponse = client.post("/api/authentification/connexion", json={
-        "courriel": courriel, "mot_de_passe": "ChangeMe-2026!"
+        "courriel": courriel, "mot_de_passe": "TestProjet123"
     })
     assert reponse.status_code == 200
     client.headers.update({"X-CSRF-Token": client.cookies.get("csrf_token")})
